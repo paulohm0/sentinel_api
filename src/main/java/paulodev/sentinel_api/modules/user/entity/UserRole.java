@@ -1,4 +1,4 @@
-package paulodev.sentinel_api.modules.user;
+package paulodev.sentinel_api.modules.user.entity;
 
 import lombok.Getter;
 

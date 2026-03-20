@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import paulodev.sentinel_api.modules.apartment.Apartment;
-import paulodev.sentinel_api.modules.user.User;
+import paulodev.sentinel_api.modules.user.entity.User;
 
 import java.util.List;
 import java.util.UUID;
