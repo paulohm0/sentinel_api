@@ -29,7 +29,7 @@ public class Tenant {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "phoneNumber", nullable = false)
+    @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
     @Column(name = "cpf", nullable = false, unique = true)

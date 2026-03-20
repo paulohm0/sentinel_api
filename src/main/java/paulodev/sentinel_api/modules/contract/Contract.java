@@ -1,12 +1,16 @@
 package paulodev.sentinel_api.modules.contract;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import paulodev.sentinel_api.modules.apartment.Apartment;
+import paulodev.sentinel_api.modules.billing.Billing;
+import paulodev.sentinel_api.modules.maintenance_ticket.MaintenanceTicket;
 import paulodev.sentinel_api.modules.tenant.Tenant;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -44,4 +48,12 @@ public class Contract {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "apartment_id", nullable = false)
     private Apartment apartment;
+
+    @OneToMany(mappedBy = "contract")
+    @JsonIgnore
+    private List<Billing> billings;
+
+    @OneToMany(mappedBy = "contract")
+    @JsonIgnore
+    private List<MaintenanceTicket> maintenanceTickets;
 }
