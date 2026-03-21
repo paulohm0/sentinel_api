@@ -3,9 +3,13 @@ package paulodev.sentinel_api.modules.user.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import paulodev.sentinel_api.modules.condominium.Condominium;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "tb_users")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class User {
+public class User implements UserDetails {
 
     @Id
     @EqualsAndHashCode.Include
@@ -40,5 +44,35 @@ public class User {
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Condominium> condominiums;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of( new SimpleGrantedAuthority(this.userRole.getRole()));
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    } // o login é feito a partir do email
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
 

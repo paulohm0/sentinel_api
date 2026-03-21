@@ -1,5 +1,5 @@
 package paulodev.sentinel_api.modules.auth.dto;
 
 public record LoginResponse(
-        String token
+        String accessToken
 ) { }

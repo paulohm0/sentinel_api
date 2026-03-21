@@ -19,7 +19,6 @@ import java.util.ArrayList;
 public class UserService {
 
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -36,12 +35,11 @@ public class UserService {
         newUser.setCondominiums(new ArrayList<>());
 
         userRepository.save(newUser);
+        return new UserResponse(newUser.getId(), newUser.getName(), newUser.getEmail(), newUser.getUserRole());
+    }
 
-        UserResponse response = new UserResponse(
-                newUser.getId(),
-                newUser.getName(),
-                newUser.getEmail(),
-                newUser.getUserRole());
-        return response;
+    public UserResponse getUserInfo(User user) {
+        var userInfo = userRepository.findByEmail(user.getEmail());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getUserRole());
     }
 }
