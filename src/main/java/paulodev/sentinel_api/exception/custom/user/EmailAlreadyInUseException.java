@@ -1,7 +1,7 @@
 package paulodev.sentinel_api.exception.custom.user;
 
 public class EmailAlreadyInUseException extends RuntimeException {
-    EmailAlreadyInUseException() {
+    public EmailAlreadyInUseException() {
         super("Email ja cadastrado");
     }
 }

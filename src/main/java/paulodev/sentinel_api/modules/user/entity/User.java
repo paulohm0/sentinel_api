@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import paulodev.sentinel_api.modules.condominium.Condominium;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
