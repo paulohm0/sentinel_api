@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,7 +27,7 @@ public class GlobalExceptionHandler {
 
     // Não respeita o @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception, HttpServletRequest request) {
         String errorMessage = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
@@ -37,16 +38,22 @@ public class GlobalExceptionHandler {
     /// Regras de Negócio do Usuário
 
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> userNotFoundException(UserNotFoundException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> userNotFound(UserNotFoundException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(404, "NOT_FOUND", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     // Email ja cadastrado
     @ExceptionHandler(EmailAlreadyInUseException.class)
-    public ResponseEntity<ErrorResponse> emailAlreadyInUseException(EmailAlreadyInUseException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> emailAlreadyInUse(EmailAlreadyInUseException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(409, "CONFLICT", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> userDesabled(DisabledException exception, HttpServletRequest request)  {
+        ErrorResponse error = new ErrorResponse(403, "FORBIDDEN", "Esta conta foi desativada. Entre em contato com o suporte.", request.getRequestURI(), Instant.now());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     /// Autenticação e Segurança
@@ -59,25 +66,25 @@ public class GlobalExceptionHandler {
 
     // É usado caso o usuário tente acessar algo que pela sua Role, ele não tem acesso
     @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<ErrorResponse> unauthorizedAccessException(UnauthorizedAccessException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> unauthorizedAccess(UnauthorizedAccessException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(403, "FORBIDDEN", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(InvalidJwtTokenException.class)
-    public ResponseEntity<ErrorResponse> invalidJwtTokenException(InvalidJwtTokenException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> invalidJwtToken(InvalidJwtTokenException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(401, "UNAUTHORIZED", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(ExpiredJwtTokenException.class)
-    public ResponseEntity<ErrorResponse> expiredJwtTokenException(ExpiredJwtTokenException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> expiredJwtToken(ExpiredJwtTokenException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(401, "UNAUTHORIZED", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(TokenGenerationException.class)
-    public ResponseEntity<ErrorResponse> tokenGenerationException(TokenGenerationException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> tokenGeneration(TokenGenerationException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(500, "INTERNAL_SERVER_ERROR", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
@@ -93,7 +100,7 @@ public class GlobalExceptionHandler {
 
     // Banco de dados cai ou perde a conexão
     @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<ErrorResponse> databaseAccessException(DataAccessException exception, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> databaseAccess(DataAccessException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(500, "INTERNAL_SERVER_ERROR", "Ocorreu uma falha de comunicação com o banco de dados.", request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

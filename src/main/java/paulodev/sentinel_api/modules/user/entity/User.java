@@ -41,8 +41,11 @@ public class User implements UserDetails {
     @Column(name = "user_role", nullable = false)
     private UserRole userRole;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_status", nullable = false)
+    private UserStatus userStatus;
+
     @OneToMany(mappedBy = "user")
-    @JsonIgnore
     private List<Condominium> condominiums;
 
     @Override
@@ -56,22 +59,20 @@ public class User implements UserDetails {
     } // o login é feito a partir do email
 
     @Override
+    public boolean isEnabled() {
+        return this.userStatus == UserStatus.ACTIVE;
+    }
+
+    @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
         return true;
     }
 }
