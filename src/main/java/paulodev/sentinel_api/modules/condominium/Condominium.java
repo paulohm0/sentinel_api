@@ -35,7 +35,6 @@ public class Condominium {
     private User user;
 
     @OneToMany(mappedBy = "condominium")
-    @JsonIgnore
     private List<Apartment> apartments;
 }
 

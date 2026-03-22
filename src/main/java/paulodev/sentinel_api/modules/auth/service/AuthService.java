@@ -8,6 +8,7 @@ import paulodev.sentinel_api.config.security.TokenService;
 import paulodev.sentinel_api.modules.auth.dto.LoginResponse;
 import paulodev.sentinel_api.modules.user.dto.UserLoginRequest;
 import paulodev.sentinel_api.modules.user.entity.User;
+import paulodev.sentinel_api.modules.user.repository.UserRepository;
 
 import java.util.Objects;
 

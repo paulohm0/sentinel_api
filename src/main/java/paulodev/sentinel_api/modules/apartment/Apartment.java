@@ -32,6 +32,5 @@ public class Apartment {
     private Condominium condominium;
 
     @OneToMany(mappedBy = "apartment")
-    @JsonIgnore
     private List<Contract> contracts;
 }

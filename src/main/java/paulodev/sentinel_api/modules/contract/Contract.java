@@ -50,10 +50,8 @@ public class Contract {
     private Apartment apartment;
 
     @OneToMany(mappedBy = "contract")
-    @JsonIgnore
     private List<Billing> billings;
 
     @OneToMany(mappedBy = "contract")
-    @JsonIgnore
     private List<MaintenanceTicket> maintenanceTickets;
 }

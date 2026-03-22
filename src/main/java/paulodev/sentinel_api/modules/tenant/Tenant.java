@@ -36,6 +36,5 @@ public class Tenant {
     private String cpf;
 
     @OneToMany(mappedBy = "tenant")
-    @JsonIgnore
     private List<Contract> contracts;
 }
