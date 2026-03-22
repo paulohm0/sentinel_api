@@ -16,6 +16,7 @@ import paulodev.sentinel_api.modules.user.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -43,15 +44,17 @@ public class UserService {
                 newUser.getId(),
                 newUser.getName(),
                 newUser.getEmail(),
-                newUser.getUserRole());
+                newUser.getUserRole(),
+                null);
     }
 
     public UserResponse getUserInfo(User user) {
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getUserRole());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getUserRole(),null);
     }
 
     @Transactional
     public UserResponse updateUserInfo(User user, UserUpdateInfoRequest update) {
+        AtomicReference<String> updatedDataMessage = new AtomicReference<>();
 
         Optional.ofNullable(update.name())
                 .filter(name -> !name.isBlank())
@@ -62,6 +65,7 @@ public class UserService {
                     if (userRepository.findByEmail(newEmail).isPresent()) {
                         throw new EmailAlreadyInUseException(); }
                     user.setEmail(newEmail);
+                    updatedDataMessage.set("Dados Atualizados. Por favor, faça login novamente.");
                 });
         Optional.ofNullable(update.password())
                 .filter(password -> !password.isBlank())
@@ -72,7 +76,8 @@ public class UserService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getUserRole());
+                user.getUserRole(),
+                updatedDataMessage.get());
     }
 
     @Transactional
