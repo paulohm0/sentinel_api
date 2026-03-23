@@ -46,7 +46,7 @@ public class UserController implements UserDocApi {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<UserDeactivatedMessage> disableUser(
             @AuthenticationPrincipal User authenticatedUser)
     {

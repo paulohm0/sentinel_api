@@ -10,10 +10,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import paulodev.sentinel_api.exception.custom.auth.ExpiredJwtTokenException;
-import paulodev.sentinel_api.exception.custom.auth.InvalidJwtTokenException;
-import paulodev.sentinel_api.exception.custom.auth.TokenGenerationException;
-import paulodev.sentinel_api.exception.custom.auth.UnauthorizedAccessException;
+import paulodev.sentinel_api.exception.custom.auth.*;
 import paulodev.sentinel_api.exception.custom.user.EmailAlreadyInUseException;
 import paulodev.sentinel_api.exception.custom.user.UserNotFoundException;
 
@@ -79,6 +76,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ExpiredJwtTokenException.class)
     public ResponseEntity<ErrorResponse> expiredJwtToken(ExpiredJwtTokenException exception, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(401, "UNAUTHORIZED", exception.getMessage(), request.getRequestURI(), Instant.now());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(NullJwtTokenException.class)
+    public ResponseEntity<ErrorResponse> nullJwtToken(NullJwtTokenException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(401, "UNAUTHORIZED", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
