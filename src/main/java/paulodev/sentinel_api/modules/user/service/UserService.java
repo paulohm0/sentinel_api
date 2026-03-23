@@ -15,6 +15,7 @@ import paulodev.sentinel_api.modules.user.entity.UserStatus;
 import paulodev.sentinel_api.modules.user.repository.UserRepository;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -25,6 +26,15 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    public List<UserResponse> getAllUsers(User user) {
+        List<User> userList = userRepository.findAll();
+        List<UserResponse> response = userList
+                .stream()
+                .map(UserResponse::new)
+                .toList();
+        return response;
+    }
+
     @Transactional
     public UserResponse createUser(UserRegisterRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
@@ -32,20 +42,12 @@ public class UserService {
         }
         String encryptedPassword = passwordEncoder.encode(request.password());
         User newUser = new User(
-                null,
                 request.name(),
                 request.email(),
                 encryptedPassword,
-                UserRole.USER,
-                UserStatus.ACTIVE,
-                new ArrayList<>());
+                request.userRole());
         userRepository.save(newUser);
-        return new UserResponse(
-                newUser.getId(),
-                newUser.getName(),
-                newUser.getEmail(),
-                newUser.getUserRole(),
-                null);
+        return new UserResponse(newUser);
     }
 
     public UserResponse getUserInfo(User user) {
@@ -72,12 +74,7 @@ public class UserService {
                 .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));
 
         userRepository.save(user);
-        return new UserResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getUserRole(),
-                updatedDataMessage.get());
+        return new UserResponse(user, updatedDataMessage.get());
     }
 
     @Transactional

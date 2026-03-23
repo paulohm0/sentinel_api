@@ -12,7 +12,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import paulodev.sentinel_api.exception.CustomAuthenticationEntryPoint;
+import paulodev.sentinel_api.modules.user.entity.UserRole;
 
 @Configuration
 @EnableWebSecurity
@@ -21,6 +23,7 @@ public class SecurityConfig {
 
     private final SecurityFilter securityFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -31,8 +34,15 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/user/list").hasAuthority(UserRole.ADMIN.getRole())
                         .anyRequest().authenticated())
-                        .exceptionHandling(customizer -> customizer.authenticationEntryPoint(customAuthenticationEntryPoint))
+                        .exceptionHandling(customizer -> customizer
+                            .authenticationEntryPoint(customAuthenticationEntryPoint)
+                            .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                handlerExceptionResolver.resolveException(request, response, null, accessDeniedException);
+                            })
+                        )
                         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                         .build();
     }

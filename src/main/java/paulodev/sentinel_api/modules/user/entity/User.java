@@ -17,7 +17,6 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "tb_users")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User implements UserDetails {
@@ -47,6 +46,15 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private List<Condominium> condominiums;
+
+    public User(String name, String email, String password, UserRole userRole) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.userRole = userRole;
+        this.userStatus = UserStatus.ACTIVE;
+        this.condominiums = new ArrayList<>();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

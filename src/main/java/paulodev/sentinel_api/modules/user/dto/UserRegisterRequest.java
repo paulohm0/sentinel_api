@@ -2,7 +2,9 @@ package paulodev.sentinel_api.modules.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import paulodev.sentinel_api.modules.user.entity.UserRole;
 
 public record UserRegisterRequest(
         @NotBlank
@@ -12,5 +14,7 @@ public record UserRegisterRequest(
         String password,
         @NotBlank
         @Email
-        String email
+        String email,
+        @NotNull
+        UserRole userRole
 ) { }

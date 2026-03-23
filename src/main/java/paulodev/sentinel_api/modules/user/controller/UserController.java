@@ -14,12 +14,26 @@ import paulodev.sentinel_api.modules.user.dto.UserUpdateInfoRequest;
 import paulodev.sentinel_api.modules.user.entity.User;
 import paulodev.sentinel_api.modules.user.service.UserService;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class UserController implements UserDocApi {
 
     private final UserService userService;
+
+    /// ADMIN
+
+    @GetMapping("/list")
+    public ResponseEntity<List<UserResponse>> listAllUsers(
+            @AuthenticationPrincipal User authenticatedUser)
+    {
+        var response = userService.getAllUsers(authenticatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    /// USER
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
