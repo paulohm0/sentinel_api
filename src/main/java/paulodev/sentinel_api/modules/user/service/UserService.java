@@ -26,7 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public List<UserResponse> getAllUsers(User user) {
+    public List<UserResponse> getAllUsers() {
         List<User> userList = userRepository.findAll();
         List<UserResponse> response = userList
                 .stream()
@@ -61,6 +61,7 @@ public class UserService {
         Optional.ofNullable(update.name())
                 .filter(name -> !name.isBlank())
                 .ifPresent(user::setName);
+
         Optional.ofNullable(update.email())
                 .filter(email -> !email.isBlank() && !email.equals(user.getEmail()))
                 .ifPresent(newEmail -> {
@@ -69,6 +70,7 @@ public class UserService {
                     user.setEmail(newEmail);
                     updatedDataMessage.set("Dados Atualizados. Por favor, faça login novamente.");
                 });
+
         Optional.ofNullable(update.password())
                 .filter(password -> !password.isBlank())
                 .ifPresent(password -> user.setPassword(passwordEncoder.encode(password)));

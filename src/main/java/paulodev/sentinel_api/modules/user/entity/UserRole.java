@@ -1,5 +1,6 @@
 package paulodev.sentinel_api.modules.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
 @Getter
@@ -11,5 +12,10 @@ public enum UserRole {
 
     UserRole(String role) {
         this.role = role;
+    }
+
+    @JsonCreator
+    public static UserRole fromString(String value) {
+        return UserRole.valueOf(value.toUpperCase());
     }
 }

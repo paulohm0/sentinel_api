@@ -26,10 +26,9 @@ public class UserController implements UserDocApi {
     /// ADMIN
 
     @GetMapping("/list")
-    public ResponseEntity<List<UserResponse>> listAllUsers(
-            @AuthenticationPrincipal User authenticatedUser)
+    public ResponseEntity<List<UserResponse>> listAllUsers()
     {
-        var response = userService.getAllUsers(authenticatedUser);
+        var response = userService.getAllUsers();
         return ResponseEntity.ok(response);
     }
 
