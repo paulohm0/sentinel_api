@@ -7,8 +7,10 @@ import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import paulodev.sentinel_api.config.security.TokenService;
 import paulodev.sentinel_api.modules.auth.dto.LoginResponse;
 import paulodev.sentinel_api.modules.auth.service.AuthService;
@@ -46,7 +48,7 @@ class AuthControllerTest {
     class Login {
 
         @Test
-        void withValidCredentials_ShouldReturnOk() throws Exception {
+        void withValidCredentials_ShouldReturn200() throws Exception {
             var request = new UserLoginRequest("paulo@test.com", "123456");
             var response = new LoginResponse("access-token-test");
 
@@ -55,11 +57,37 @@ class AuthControllerTest {
             mockMvc.perform(post("/auth/login")                                         // Define a rota e o métod0 HTTP
                             .contentType(MediaType.APPLICATION_JSON)                    // Informa que esta sendo enviando um JSON
                             .content(objectMapper.writeValueAsString(request)))         // Transforma o objeto 'request' em texto JSON
-                    .andExpect(status().isOk())                                 // Verifica se o servidor respondeu 200 OK
-                    .andExpect(result -> {                                      // Verifica se o corpo da resposta contém o token que o dublê entregou
+                    .andExpect(status().isOk())                                         // Verifica se o servidor respondeu o status code correto
+                    .andExpect(result -> {                                              // Verifica se o corpo da resposta contém o token que o dublê entregou
                         String json = result.getResponse().getContentAsString();
                         assertTrue(json.contains("access-token-test"));
                     });
+        }
+
+        @Test
+        void withInvalidCredentials_ShouldReturn401() throws Exception {
+            var request = new UserLoginRequest("test", "123456");
+
+            when(authService.login(any())).thenThrow( new BadCredentialsException("erro"));
+
+            mockMvc.perform(post("/auth/login")                                         // Define a rota e o métod0 HTTP
+                            .contentType(MediaType.APPLICATION_JSON)                    // Informa que esta sendo enviando um JSON
+                            .content(objectMapper.writeValueAsString(request)))         // Transforma o objeto 'request' em texto JSON
+                    .andExpect(status().isUnauthorized())                               // Verifica se o servidor respondeu o status code correto
+                    .andExpect(result -> {                                              // Verifica se o corpo da resposta contém o token que o dublê entregou
+                        String json = result.getResponse().getContentAsString();
+                        assertTrue(json.contains("erro"));
+                    });
+        }
+
+        @Test
+        void withEmptyCredentials_ShouldReturn400() throws Exception {
+            var request = new UserLoginRequest("", "");
+
+            mockMvc.perform(post("/auth/login")                                         // Define a rota e o métod0 HTTP
+                            .contentType(MediaType.APPLICATION_JSON)                    // Informa que esta sendo enviando um JSON
+                            .content(objectMapper.writeValueAsString(request)))         // Transforma o objeto 'request' em texto JSON
+                    .andExpect(status().isBadRequest());                                 // Verifica se o servidor respondeu o status code correto
         }
     }
 }
