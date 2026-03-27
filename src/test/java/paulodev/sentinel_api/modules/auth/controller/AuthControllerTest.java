@@ -48,7 +48,7 @@ class AuthControllerTest {
     class Login {
 
         @Test
-        void withValidCredentials_ShouldReturn200() throws Exception {
+        void withValidCredentials_ShouldReturnOk() throws Exception {
             var request = new UserLoginRequest("paulo@test.com", "123456");
             var response = new LoginResponse("access-token-test");
 
@@ -65,7 +65,7 @@ class AuthControllerTest {
         }
 
         @Test
-        void withInvalidCredentials_ShouldReturn401() throws Exception {
+        void withInvalidCredentials_ShouldReturnUnauthorized() throws Exception {
             var request = new UserLoginRequest("test", "123456");
 
             when(authService.login(any())).thenThrow( new BadCredentialsException("erro"));
@@ -81,7 +81,7 @@ class AuthControllerTest {
         }
 
         @Test
-        void withEmptyCredentials_ShouldReturn400() throws Exception {
+        void withEmptyCredentials_ShouldReturnBadRequest() throws Exception {
             var request = new UserLoginRequest("", "");
 
             mockMvc.perform(post("/auth/login")                                         // Define a rota e o métod0 HTTP
