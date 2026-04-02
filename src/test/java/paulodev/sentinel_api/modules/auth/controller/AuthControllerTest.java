@@ -24,9 +24,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = AuthController.class, excludeAutoConfiguration = {
-        SecurityAutoConfiguration.class,
-        UserDetailsServiceAutoConfiguration.class})
+@WebMvcTest(value = AuthController.class,
+            excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                UserDetailsServiceAutoConfiguration.class}
+            )
 class AuthControllerTest {
 
     @Autowired
