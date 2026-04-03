@@ -19,7 +19,7 @@ import paulodev.sentinel_api.modules.user.entity.User;
 
 import java.util.List;
 
-@Tag(name = "Usuários", description = "Gerenciamento de usuários CRUD")
+@Tag(name = "Usuários", description = "Gerenciamento de usuários")
 public interface UserDocApi {
 
     @Operation(summary = "Listar todos os usuários")

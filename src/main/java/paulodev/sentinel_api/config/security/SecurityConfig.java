@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/user/list").hasAuthority(UserRole.ADMIN.getRole())
+                        .requestMatchers(HttpMethod.GET, "/apartment/list").hasAuthority(UserRole.ADMIN.getRole())
                         .anyRequest().authenticated())
                         .exceptionHandling(customizer -> customizer
                             .authenticationEntryPoint(customAuthenticationEntryPoint)

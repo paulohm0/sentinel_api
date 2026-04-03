@@ -1,12 +1,11 @@
 package paulodev.sentinel_api.modules.user.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import paulodev.sentinel_api.modules.condominium.Condominium;
+import paulodev.sentinel_api.modules.condominium.entity.Condominium;
 
 import java.util.ArrayList;
 import java.util.Collection;

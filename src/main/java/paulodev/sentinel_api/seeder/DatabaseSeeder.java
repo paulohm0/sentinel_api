@@ -77,14 +77,12 @@ public class DatabaseSeeder {
                 List<Apartment> allUnits = new ArrayList<>();
 
                 for (Condominium condo : allCondominiums) {
-                    // Sorteia de 10 a 40 apartamentos para este prédio
                     int qtdApartaments = faker.random().nextInt(3, 11);
 
                     for (int i = 1; i <= qtdApartaments; i++) {
-                        // Gera números realistas como "101", "405", "1202"
-                        int andar = (faker.random().nextInt(1, 15)) * 100;
-                        int numeroPorta = faker.random().nextInt(1, 8);
-                        String unitNumber = String.valueOf(andar + numeroPorta);
+                        int building = (faker.random().nextInt(1, 10)) * 100;
+                        int ap = faker.random().nextInt(1, 8);
+                        String unitNumber = String.valueOf("bloco " + building + " ap " + ap);
 
                         Apartment unit = new Apartment(unitNumber, condo);
                         allUnits.add(unit);

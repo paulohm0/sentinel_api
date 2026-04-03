@@ -1,11 +1,11 @@
-package paulodev.sentinel_api.modules.condominium;
+package paulodev.sentinel_api.modules.condominium.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import paulodev.sentinel_api.modules.apartment.Apartment;
+import paulodev.sentinel_api.modules.apartment.entity.Apartment;
 import paulodev.sentinel_api.modules.user.entity.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,7 +13,6 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "tb_condominiums")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Condominium {
@@ -34,7 +33,14 @@ public class Condominium {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "condominium")
-    private List<Apartment> apartments;
+    @OneToMany(mappedBy = "condominium", fetch = FetchType.EAGER)
+    private List<Apartment> apartments = new ArrayList<>();
+
+    public Condominium(String name, String address, User user) {
+        this.name = name;
+        this.address = address;
+        this.user = user;
+        this.apartments = new ArrayList<>();
+    }
 }
 

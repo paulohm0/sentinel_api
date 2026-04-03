@@ -13,6 +13,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import paulodev.sentinel_api.exception.custom.auth.*;
+import paulodev.sentinel_api.exception.custom.condominium.CondominiumEmptyListException;
+import paulodev.sentinel_api.exception.custom.condominium.CondominiumNotFoundException;
 import paulodev.sentinel_api.exception.custom.user.EmailAlreadyInUseException;
 import paulodev.sentinel_api.exception.custom.user.UserNotFoundException;
 
@@ -61,6 +63,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> emailAlreadyInUse(EmailAlreadyInUseException exception, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(409, "Email already in use", exception.getMessage(), request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    /// Regras de Negócio do Condomínio
+
+    @ExceptionHandler(CondominiumNotFoundException.class)
+    public ResponseEntity<ErrorResponse> condominiumNotFound(CondominiumNotFoundException exception, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(404, "Condominium not found", exception.getMessage(), request.getRequestURI(), Instant.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(CondominiumEmptyListException.class)
+    public ResponseEntity<ErrorResponse> condominiumEmptyList(CondominiumEmptyListException exception, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(404, "Condominium empty list", exception.getMessage(), request.getRequestURI(), Instant.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(DisabledException.class)
