@@ -4,61 +4,190 @@ Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar 
 ## Comandos
 
 ```bash
-# Subir o banco de dados (Postgres via Docker)
-docker-compose up -d
-# Rodar o app
-./mvnw spring-boot:run
-# Rodar os testes
-./mvnw test
-# Rodar uma classe de teste específica
-./mvnw test -Dtest=NomeDaClasseTest
-# Empacotar
-./mvnw clean package
+docker-compose up -d                   # sobe o Postgres
+./mvnw spring-boot:run                 # roda o app
+./mvnw test                            # roda os testes
+./mvnw test -Dtest=NomeDaClasseTest    # roda uma classe específica
+./mvnw clean package                   # empacota
 ```
 
 ## Arquitetura
-Spring Boot (Java 21), organizado por módulo de domínio em `src/main/java/paulodev/sentinel_api/modules/<dominio>/`:
-- **`entity/`** — entidades JPA (`@Entity`)
-- **`repository/`** — Spring Data JPA repositories
-- **`service/`** — regras de negócio (`@Service`, `@Transactional` quando escreve)
-- **`controller/`** — endpoints REST (`@RestController`)
-- **`dto/`** — DTOs em `record` (request/response)
-- **`documentation/`** — interfaces `*DocApi` com anotações Swagger/OpenAPI, separadas do controller
-- **`exception/custom/<dominio>/`** — exceções de domínio, tratadas globalmente por `exception/handler/GlobalExceptionHandler.java`
+Spring Boot (Java 21), Maven. Organizado por módulo de domínio em `src/main/java/paulodev/sentinel_api/modules/<dominio>/`. Módulos com só `entity` (sem repository/service/controller ainda): `tenant`, `contract`, `billing`, `maintenance_ticket`.
 
-Módulos ainda incompletos (só têm `entity`, sem repository/service/controller): `tenant`, `contract`, `billing`, `maintenance_ticket`. É o próximo trabalho — ver `ROADMAP.md`.
+### `entity/` — entidade JPA
+```java
+@Entity
+@Getter @Setter @NoArgsConstructor
+@Table(name = "tb_apartments")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Apartment {
 
-### Segurança
-Spring Security + JWT (`com.auth0:java-jwt`), stateless (`SessionCreationPolicy.STATELESS`). `SecurityFilter` intercepta cada request, valida o token via `TokenService` e popula o `SecurityContextHolder`. Regras de rota em `config/security/SecurityConfig.java`. Erros de autenticação/autorização tratados por `CustomAuthenticationEntryPoint` + `GlobalExceptionHandler`.
+    @Id
+    @EqualsAndHashCode.Include
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
 
-**Padrão de escopo por dono do recurso**: ver `CondominiumService` (`findByIdAndUser`) — todo módulo novo que expõe dado do usuário deve seguir esse padrão (hoje `ApartmentService`/`ApartmentController` ainda não seguem — bug conhecido, ver `ROADMAP.md`).
+    @Column(name = "number", nullable = false)
+    private String number;
 
-### Banco de dados
-PostgreSQL via Docker (`docker-compose.yml`, serviço `db`). `spring.jpa.hibernate.ddl-auto=update` (schema evolui automaticamente em dev). `DatabaseSeeder` popula dados fake (Datafaker) na primeira subida, se o banco estiver vazio.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "condominium_id", nullable = false)
+    private Condominium condominium;
+}
+```
 
-### Testes
-JUnit 5 + Mockito. Convenção: `<Classe>Test.java` espelhando o módulo em `src/test/java/.../modules/<dominio>/{service,controller}/`. Ver `AuthServiceTest`/`UserServiceTest`/`AuthControllerTest`/`UserControllerTest` como referência de estilo.
+### `repository/` — escopo por dono do recurso
+Toda entidade que pertence (direta ou indiretamente) a um usuário expõe uma query `findByIdAndUser`:
+```java
+@Repository
+public interface CondominiumRepository extends JpaRepository<Condominium, UUID> {
 
----
+    @Query("SELECT c FROM Condominium c WHERE c.id = :condominiumId AND c.user.id = :userId")
+    Optional<Condominium> findByIdAndUser(@Param("condominiumId") UUID condominiumId, @Param("userId") UUID userId);
+}
+```
 
-## Sobre este projeto
-Sentinel API é o projeto-referência da stack Java no portfólio do usuário (equivalente ao papel do AutoLog no Flutter). Resolve uma dor real: uma amiga do usuário gerencia vários apartamentos alugados em várias regiões da cidade e hoje organiza tudo em planilha Excel, sempre se perdendo. É **só backend por enquanto** — sem front (mobile fica pra depois) e sem uso pelos inquilinos, só a gerente (dona dos imóveis) usa.
+### `service/` — regra de negócio
+```java
+@Service
+@RequiredArgsConstructor
+public class CondominiumService {
 
-O objetivo do projeto é ser um checklist vivo dos principais tópicos pedidos em vagas Java Estágio/Jr hoje: Java Core, POO/SOLID, Spring Boot REST, Spring Data JPA/Hibernate, Spring Security+JWT, banco relacional, JUnit5+Mockito, Maven, Git, Docker/docker-compose, mensageria (RabbitMQ/Kafka), Clean Architecture/DTOs/Mappers/padrões de projeto, deploy em nuvem, observabilidade (métricas/tracing). **A meta não é dominar cada tópico — é entender o conceito e aplicar o básico de todos**, dentro deste único projeto. Progresso detalhado em `ROADMAP.md`.
+    private final CondominiumRepository condominiumRepository;
 
-**Restrição de orçamento**: o usuário não quer gastar mais que ~R$100 no total com este projeto. Sempre priorizar opções gratuitas/free tier (ex.: Grafana+Prometheus self-hosted em vez de Datadog, Render/Railway free tier em vez de nuvem paga).
+    @Transactional
+    public CondominiumResponse getCondominiumInfo(UUID condominiumId, User authenticatedUser) {
+        Condominium condominium = condominiumRepository.findByIdAndUser(condominiumId, authenticatedUser.getId())
+                .orElseThrow(CondominiumNotFoundException::new);
+        return new CondominiumResponse(condominium);
+    }
+}
+```
 
-## Meu papel nesse projeto (Claude)
-Atuo como **tech lead**: defino a ordem das tarefas (`ROADMAP.md`) e explico o porquê de cada decisão de arquitetura/padrão antes de qualquer código. Por padrão, **o usuário implementa ele mesmo** — só implemento quando ele pede explicitamente. Priorizar sempre entendimento sobre velocidade.
+### `controller/` — endpoint REST
+```java
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/condominium")
+public class CondominiumController implements CondominiumDocApi {
 
-## Meu perfil como desenvolvedor
-- Formado em ADS, cursando pós-graduação em Engenharia de Software
-- Pivotou de Flutter (não achou vaga na área) para foco em Java backend
-- Vários projetos Flutter completos; em Java, este é o mais avançado
+    private final CondominiumService condominiumService;
 
-## Formato de planejamento
-Quando eu pedir um diagnóstico ou planejamento, responda neste formato:
-- **O que já foi feito**
-- **O que está incompleto ou com problema**
-- **Próximas tarefas sugeridas** (em ordem de prioridade)
-- **Conceito importante** que devo entender antes de começar
+    @GetMapping("/summary/{condominiumId}")
+    public ResponseEntity<CondominiumResponse> getCondominiumSummary(
+            @PathVariable UUID condominiumId,
+            @AuthenticationPrincipal User authenticatedUser)
+    {
+        var response = condominiumService.getCondominiumInfo(condominiumId, authenticatedUser);
+        return ResponseEntity.ok(response);
+    }
+}
+```
+
+### `dto/` — request/response em `record`
+```java
+public record CondominiumRegisterRequest(String name, String address) {}
+```
+
+### `documentation/` — interface `XDocApi` (Swagger separado do controller)
+```java
+@Tag(name = "Condomínios", description = "Gerenciamento de condomínios")
+public interface CondominiumDocApi {
+
+    @Operation(summary = "Visualizar resumo do condomínio")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dados retornados com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Condomínio não encontrado",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))})
+    ResponseEntity<CondominiumResponse> getCondominiumSummary(@PathVariable UUID condominiumId, @AuthenticationPrincipal User authenticatedUser);
+}
+```
+
+### `exception/custom/<dominio>/` — uma classe por erro de negócio
+```java
+public class CondominiumNotFoundException extends RuntimeException {
+    public CondominiumNotFoundException() {
+        super("Condomínio não encontrado");
+    }
+}
+```
+
+## Erros
+Tratamento centralizado em `exception/handler/GlobalExceptionHandler.java` (`@RestControllerAdvice`), um `@ExceptionHandler` por tipo de exceção, agrupado por domínio com comentários `///`. Cada handler devolve um `ErrorResponse`:
+```java
+@ExceptionHandler(CondominiumNotFoundException.class)
+public ResponseEntity<ErrorResponse> condominiumNotFound(CondominiumNotFoundException exception, HttpServletRequest request) {
+    ErrorResponse error = new ErrorResponse(404, "Condominium not found", exception.getMessage(), request.getRequestURI(), Instant.now());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+}
+```
+
+## Segurança
+Spring Security + JWT (`com.auth0:java-jwt`), stateless. `SecurityFilter` valida o token e popula `SecurityContextHolder`; regras de rota em `config/security/SecurityConfig.java`.
+**Padrão de escopo por dono do recurso** já ilustrado acima (`findByIdAndUser` + `@AuthenticationPrincipal`) — todo módulo novo que expõe dado do usuário segue isso. `Apartment` ainda não segue esse padrão (bug conhecido).
+
+## Banco de dados
+PostgreSQL via Docker (`docker-compose.yml`, serviço `db`). `spring.jpa.hibernate.ddl-auto=update`. `DatabaseSeeder` popula dados fake com Datafaker na primeira subida, se o banco estiver vazio.
+
+## Testes
+JUnit 5 + Mockito, em `src/test/java/.../modules/<dominio>/{service,controller}/`.
+
+### Teste de service
+`@ExtendWith(MockitoExtension.class)`, `@Mock` nas dependências, `@InjectMocks` no service. Nomes de teste: `metodo_ComCondicao_DeveResultado`. Referência: `AuthServiceTest`, `UserServiceTest`.
+```java
+@ExtendWith(MockitoExtension.class)
+class AuthServiceTest {
+
+    @Mock
+    private AuthenticationManager auth;
+    @Mock
+    private TokenService tokenService;
+    @InjectMocks
+    private AuthService authService;
+
+    @Test
+    void login_WithValidCredentials_ShouldReturnToken() {
+        var request = new UserLoginRequest("paulo@test.com", "123456");
+        var authTest = mock(Authentication.class);
+        when(auth.authenticate(any())).thenReturn(authTest);
+        when(authTest.getPrincipal()).thenReturn(new User());
+        when(tokenService.tokenGenerate(any())).thenReturn("access-token-test");
+
+        var result = authService.login(request);
+
+        assertEquals("access-token-test", result.accessToken());
+    }
+}
+```
+
+### Teste de controller
+`@WebMvcTest` excluindo autoconfig de segurança, `@MockitoBean` no service e em toda dependência da cadeia de segurança (`TokenService`, `XRepository`), `MockMvc` + `jsonPath`, usuário autenticado simulado via `SecurityMockMvcRequestPostProcessors.user(user)`. Casos agrupados em classes `@Nested` por endpoint. Referência: `UserControllerTest`.
+```java
+@WebMvcTest(value = UserController.class,
+        excludeAutoConfiguration = {SecurityAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class})
+class UserControllerTest {
+
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
+    @MockitoBean private UserService userService;
+    @MockitoBean private TokenService tokenService;
+    @MockitoBean private UserRepository userRepository;
+
+    @Nested
+    class Register {
+        @Test
+        void withValidRequest() throws Exception {
+            var request = new UserRegisterRequest("Name", "pass123", "email@test.com", UserRole.USER);
+            var response = new UserResponse(new User("Name", "email@test.com", "pass", UserRole.USER));
+            when(userService.createUser(request)).thenReturn(response);
+
+            mockMvc.perform(post("/user/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.name", is("Name")));
+        }
+    }
+}
+```
