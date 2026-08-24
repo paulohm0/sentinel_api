@@ -1,11 +1,11 @@
-package paulodev.sentinel_api.modules.apartment;
+package paulodev.sentinel_api.modules.apartment.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import paulodev.sentinel_api.modules.condominium.Condominium;
+import paulodev.sentinel_api.modules.condominium.entity.Condominium;
 import paulodev.sentinel_api.modules.contract.Contract;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,4 +33,15 @@ public class Apartment {
 
     @OneToMany(mappedBy = "apartment")
     private List<Contract> contracts;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "apartment_status", nullable = false)
+    private ApartmentStatus apartmentStatus;
+
+    public Apartment(String number, Condominium condominium) {
+        this.number = number;
+        this.condominium = condominium;
+        this.contracts = new ArrayList<>();
+        this.apartmentStatus = ApartmentStatus.ACTIVE;
+    }
 }

@@ -12,6 +12,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import paulodev.sentinel_api.exception.custom.apartment.ApartmentAlreadyExistsException;
+import paulodev.sentinel_api.exception.custom.apartment.ApartmentNotFoundException;
 import paulodev.sentinel_api.exception.custom.auth.*;
 import paulodev.sentinel_api.exception.custom.condominium.CondominiumEmptyListException;
 import paulodev.sentinel_api.exception.custom.condominium.CondominiumNotFoundException;
@@ -83,6 +85,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> userDesabled(DisabledException exception, HttpServletRequest request)  {
         ErrorResponse error = new ErrorResponse(403, "User desabled", "Esta conta foi desativada. Entre em contato com o suporte.", request.getRequestURI(), Instant.now());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    /// Regras de Negócio do Apartamento
+
+    @ExceptionHandler(ApartmentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> apartmentNotFound(ApartmentNotFoundException exception, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(404, "Apartment not found", exception.getMessage(), request.getRequestURI(), Instant.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(ApartmentAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> apartmentAlreadyExists(ApartmentAlreadyExistsException exception, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(409, "Apartment already exists", exception.getMessage(), request.getRequestURI(), Instant.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     /// Autenticação e Segurança
