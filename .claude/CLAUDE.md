@@ -123,9 +123,40 @@ public ResponseEntity<ErrorResponse> condominiumNotFound(CondominiumNotFoundExce
 }
 ```
 
+**Status HTTP usados:**
+
+| Status | Quando usar | Exemplo |
+|---|---|---|
+| `200 OK` | GET/PATCH com sucesso; `DELETE` que na prática é soft delete (corpo com mensagem de confirmação) | `getCondominiumSummary`, `disableApartment` |
+| `201 CREATED` | POST que cria um recurso novo | `register` (user/condomínio), `createApartment` |
+| `400 BAD REQUEST` | Falha de validação de campo (`@Valid`) ou JSON malformado/enum inválido | `MethodArgumentNotValidException`, `HttpMessageNotReadableException` |
+| `401 UNAUTHORIZED` | Credenciais erradas, token JWT ausente/inválido/expirado | `BadCredentialsException`, `InvalidJwtTokenException`, `ExpiredJwtTokenException` |
+| `403 FORBIDDEN` | Role sem permissão pra rota, conta desativada, acesso negado a um recurso específico | `AccessDeniedException`, `DisabledException`, `UnauthorizedAccessException` |
+| `404 NOT FOUND` | Recurso não existe **ou não pertence ao usuário autenticado** (escondemos a existência, não vazamos "existe mas não é seu") | `UserNotFoundException`, `CondominiumNotFoundException`, `ApartmentNotFoundException` |
+| `409 CONFLICT` | Dado duplicado, violação de integridade do banco | `EmailAlreadyInUseException`, `ApartmentAlreadyExistsException`, `DataIntegrityViolationException` |
+| `500 INTERNAL SERVER ERROR` | Falha interna real (geração de token, banco fora do ar) | `TokenGenerationException`, `DataAccessException` |
+
 ## Segurança
 Spring Security + JWT (`com.auth0:java-jwt`), stateless. `SecurityFilter` valida o token e popula `SecurityContextHolder`; regras de rota em `config/security/SecurityConfig.java`.
-**Padrão de escopo por dono do recurso** já ilustrado acima (`findByIdAndUser` + `@AuthenticationPrincipal`) — todo módulo novo que expõe dado do usuário segue isso. `Apartment` ainda não segue esse padrão (bug conhecido).
+**Padrão de escopo por dono do recurso** já ilustrado acima (`findByIdAndUser` + `@AuthenticationPrincipal`) — todo módulo novo que expõe dado do usuário segue isso, incluindo `Apartment`.
+
+## Soft delete
+Nenhum módulo faz hard delete (nunca `deleteById`/`DELETE FROM`) — todo "excluir" vira uma flag de status na entidade:
+```java
+// User.java
+@Enumerated(EnumType.STRING)
+@Column(name = "user_status", nullable = false)
+private UserStatus userStatus; // ACTIVE | INACTIVE, inicia ACTIVE no construtor de criação
+
+// UserService.java
+@Transactional
+public UserDeactivatedMessage disableUser(User user) {
+    user.setUserStatus(UserStatus.INACTIVE);
+    userRepository.save(user);
+    return new UserDeactivatedMessage();
+}
+```
+**Visibilidade de item desativado é por dono, não por role.** Não é "só ADMIN vê o que foi desativado" — quem é dono do recurso (o usuário do condomínio/apartamento/contrato) continua enxergando o próprio item mesmo depois de desativado, usando o mesmo escopo por dono (`findByIdAndUser`) já documentado acima. `ADMIN` segue existindo como role de sistema (ex.: `/user/list`), mas não é o gate dessa visibilidade.
 
 ## Banco de dados
 PostgreSQL via Docker (`docker-compose.yml`, serviço `db`). `spring.jpa.hibernate.ddl-auto=update`. `DatabaseSeeder` popula dados fake com Datafaker na primeira subida, se o banco estiver vazio.
