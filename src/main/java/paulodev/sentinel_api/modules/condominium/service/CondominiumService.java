@@ -5,10 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import paulodev.sentinel_api.exception.custom.condominium.CondominiumEmptyListException;
 import paulodev.sentinel_api.exception.custom.condominium.CondominiumNotFoundException;
+import paulodev.sentinel_api.modules.condominium.dto.CondominiumDeactivatedMessage;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumRegisterRequest;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumResponse;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumDetailsResponse;
 import paulodev.sentinel_api.modules.condominium.entity.Condominium;
+import paulodev.sentinel_api.modules.condominium.entity.CondominiumStatus;
 import paulodev.sentinel_api.modules.condominium.repository.CondominiumRepository;
 import paulodev.sentinel_api.modules.user.entity.User;
 
@@ -54,6 +56,15 @@ public class CondominiumService {
         Condominium condominium = condominiumRepository.findByIdAndUser(condominiumId, authenticatedUser.getId())
                 .orElseThrow(CondominiumNotFoundException::new);
         return new CondominiumDetailsResponse(condominium);
+    }
+
+    @Transactional
+    public CondominiumDeactivatedMessage disableCondominium(UUID condominiumId, User authenticatedUser) {
+        Condominium condominium = condominiumRepository.findByIdAndUser(condominiumId, authenticatedUser.getId())
+                .orElseThrow(CondominiumNotFoundException::new);
+        condominium.setCondominiumStatus(CondominiumStatus.INACTIVE);
+        condominiumRepository.save(condominium);
+        return new CondominiumDeactivatedMessage();
     }
 }
 

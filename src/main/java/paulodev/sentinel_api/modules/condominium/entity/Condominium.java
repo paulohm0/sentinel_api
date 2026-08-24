@@ -36,11 +36,16 @@ public class Condominium {
     @OneToMany(mappedBy = "condominium", fetch = FetchType.EAGER)
     private List<Apartment> apartments = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condominium_status", nullable = false)
+    private CondominiumStatus condominiumStatus;
+
     public Condominium(String name, String address, User user) {
         this.name = name;
         this.address = address;
         this.user = user;
         this.apartments = new ArrayList<>();
+        this.condominiumStatus = CondominiumStatus.ACTIVE;
     }
 }
 

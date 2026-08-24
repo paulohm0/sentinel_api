@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import paulodev.sentinel_api.exception.handler.ErrorResponse;
+import paulodev.sentinel_api.modules.condominium.dto.CondominiumDeactivatedMessage;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumRegisterRequest;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumResponse;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumDetailsResponse;
@@ -83,6 +84,23 @@ public interface CondominiumDocApi {
                     description = "Condomínio não encontrado",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))})
     ResponseEntity<CondominiumDetailsResponse> getCondominiumDetails(
+            @PathVariable UUID condominiumId,
+            @AuthenticationPrincipal User authenticatedUser);
+
+    @Operation(summary = "Desativar condomínio")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Condomínio desativado com sucesso"),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Erro de autenticação do usuário, token expirado ou inválido",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Condomínio não encontrado",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))})
+    ResponseEntity<CondominiumDeactivatedMessage> disableCondominium(
             @PathVariable UUID condominiumId,
             @AuthenticationPrincipal User authenticatedUser);
 }

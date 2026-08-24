@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import paulodev.sentinel_api.modules.condominium.documentation.CondominiumDocApi;
+import paulodev.sentinel_api.modules.condominium.dto.CondominiumDeactivatedMessage;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumRegisterRequest;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumResponse;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumDetailsResponse;
@@ -55,6 +56,15 @@ public class CondominiumController implements CondominiumDocApi {
             @AuthenticationPrincipal User authenticatedUser)
     {
         var response = condominiumService.listCondominiumApartments(condominiumId,authenticatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete/{condominiumId}")
+    public ResponseEntity<CondominiumDeactivatedMessage> disableCondominium(
+            @PathVariable UUID condominiumId,
+            @AuthenticationPrincipal User authenticatedUser)
+    {
+        var response = condominiumService.disableCondominium(condominiumId, authenticatedUser);
         return ResponseEntity.ok(response);
     }
 }
