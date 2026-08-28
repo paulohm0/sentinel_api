@@ -16,6 +16,7 @@ import paulodev.sentinel_api.modules.condominium.dto.CondominiumDeactivatedMessa
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumRegisterRequest;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumResponse;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumDetailsResponse;
+import paulodev.sentinel_api.modules.condominium.dto.CondominiumUpdateRequest;
 import paulodev.sentinel_api.modules.user.entity.User;
 
 import java.util.List;
@@ -85,6 +86,28 @@ public interface CondominiumDocApi {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))})
     ResponseEntity<CondominiumDetailsResponse> getCondominiumDetails(
             @PathVariable UUID condominiumId,
+            @AuthenticationPrincipal User authenticatedUser);
+
+    @Operation(summary = "Atualizar condomínio")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Condomínio atualizado com sucesso"),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Erro de validação nos dados enviados (campos vazios)",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Erro de autenticação do usuário, token expirado ou inválido",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Condomínio não encontrado",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))})
+    ResponseEntity<CondominiumResponse> updateCondominium(
+            @PathVariable UUID condominiumId,
+            @Valid @RequestBody CondominiumUpdateRequest request,
             @AuthenticationPrincipal User authenticatedUser);
 
     @Operation(summary = "Desativar condomínio")

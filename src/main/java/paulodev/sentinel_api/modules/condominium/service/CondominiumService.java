@@ -9,6 +9,7 @@ import paulodev.sentinel_api.modules.condominium.dto.CondominiumDeactivatedMessa
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumRegisterRequest;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumResponse;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumDetailsResponse;
+import paulodev.sentinel_api.modules.condominium.dto.CondominiumUpdateRequest;
 import paulodev.sentinel_api.modules.condominium.entity.Condominium;
 import paulodev.sentinel_api.modules.condominium.entity.CondominiumStatus;
 import paulodev.sentinel_api.modules.condominium.repository.CondominiumRepository;
@@ -56,6 +57,17 @@ public class CondominiumService {
         Condominium condominium = condominiumRepository.findByIdAndUser(condominiumId, authenticatedUser.getId())
                 .orElseThrow(CondominiumNotFoundException::new);
         return new CondominiumDetailsResponse(condominium);
+    }
+
+    @Transactional
+    public CondominiumResponse updateCondominium(UUID condominiumId, CondominiumUpdateRequest request, User authenticatedUser) {
+        Condominium condominium = condominiumRepository.findByIdAndUser(condominiumId, authenticatedUser.getId())
+                .orElseThrow(CondominiumNotFoundException::new);
+
+        condominium.setName(request.name());
+        condominium.setAddress(request.address());
+        condominiumRepository.save(condominium);
+        return new CondominiumResponse(condominium);
     }
 
     @Transactional

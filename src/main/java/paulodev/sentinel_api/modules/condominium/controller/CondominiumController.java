@@ -11,6 +11,7 @@ import paulodev.sentinel_api.modules.condominium.dto.CondominiumDeactivatedMessa
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumRegisterRequest;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumResponse;
 import paulodev.sentinel_api.modules.condominium.dto.CondominiumDetailsResponse;
+import paulodev.sentinel_api.modules.condominium.dto.CondominiumUpdateRequest;
 import paulodev.sentinel_api.modules.condominium.service.CondominiumService;
 import paulodev.sentinel_api.modules.user.entity.User;
 
@@ -56,6 +57,16 @@ public class CondominiumController implements CondominiumDocApi {
             @AuthenticationPrincipal User authenticatedUser)
     {
         var response = condominiumService.listCondominiumApartments(condominiumId,authenticatedUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/update/{condominiumId}")
+    public ResponseEntity<CondominiumResponse> updateCondominium(
+            @PathVariable UUID condominiumId,
+            @Valid @RequestBody CondominiumUpdateRequest request,
+            @AuthenticationPrincipal User authenticatedUser)
+    {
+        var response = condominiumService.updateCondominium(condominiumId, request, authenticatedUser);
         return ResponseEntity.ok(response);
     }
 
