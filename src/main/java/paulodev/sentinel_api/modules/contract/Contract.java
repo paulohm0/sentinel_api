@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import paulodev.sentinel_api.modules.apartment.entity.Apartment;
 import paulodev.sentinel_api.modules.billing.Billing;
-import paulodev.sentinel_api.modules.maintenance_ticket.MaintenanceTicket;
 import paulodev.sentinel_api.modules.tenant.Tenant;
 
 import java.math.BigDecimal;
@@ -50,7 +49,4 @@ public class Contract {
 
     @OneToMany(mappedBy = "contract")
     private List<Billing> billings;
-
-    @OneToMany(mappedBy = "contract")
-    private List<MaintenanceTicket> maintenanceTickets;
 }

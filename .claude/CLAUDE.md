@@ -12,7 +12,7 @@ docker-compose up -d                   # sobe o Postgres
 ```
 
 ## Arquitetura
-Spring Boot (Java 21), Maven. Organizado por módulo de domínio em `src/main/java/paulodev/sentinel_api/modules/<dominio>/`. Módulos com só `entity` (sem repository/service/controller ainda): `tenant`, `contract`, `billing`, `maintenance_ticket`.
+Spring Boot (Java 21), Maven. Organizado por módulo de domínio em `src/main/java/paulodev/sentinel_api/modules/<dominio>/`. Módulos com só `entity` (sem repository/service/controller ainda): `tenant`, `contract`, `billing`.
 
 ### `entity/` — entidade JPA
 ```java
